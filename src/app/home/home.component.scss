@@ -1,0 +1,130 @@
+@import '../../assets/stylesheets/variables';
+.flexRow{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    flex-basis: 25%;
+}
+.mapping{
+    display: flex;
+    flex-direction: row;
+    // justify-content: space-between;
+    flex-wrap: wrap;
+    flex-basis: 25%;
+}
+.flexRowNoJustifiedContent{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-basis: 25%;
+    
+}
+.btnWidth{
+    width: 250px;
+}
+.fullWidth{
+    width: 100%;
+}
+.errorMsg {
+    text-align: center;
+    padding: 2em 1em;
+    font-size: 1.5em;
+    color: #999;
+    font-weight: 600;
+    text-shadow: 1px 1px 4px #FFF;
+}
+
+.setTextOnTop{
+    position: fixed;
+    top: 50%;
+    left: 25%;
+    margin: -5em auto;
+    font-size: 22px;
+    font-weight: 600;
+    color: #333;
+    text-shadow: 1px 1px 4px #FFF;
+}
+
+.toolTip{
+    max-width: unset !important;
+}
+
+.flexIndexes{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+.alignItems{
+    align-items: center;
+}
+.flexBasis{
+    flex-basis: 50%;
+}
+.div-container{
+    padding: 1em;
+    background-color:rgb(216, 214, 214);
+    border: 2px rgb(134, 134, 134) solid;
+    border-radius: 0.3em;
+}
+.formFieldWidth{
+    max-width: 100%;
+}
+.formFieldWidthSecond {
+    width: 600px;
+}
+.formFieldWidthIndexes{
+    width: 500px
+}
+
+a{
+    color: rgb(39, 128, 211);
+    cursor: pointer;
+}
+
+.flexCol{
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    flex-wrap: wrap;
+}
+.flexColEven{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
+}
+.spaceBetween{
+    justify-content: space-between;  
+}
+.container{
+    padding: .5em;
+    margin: 0 auto;
+}
+
+.setSpinnerOnTop{
+    display: flex;
+    position: absolute;
+    top: auto;
+    left: 50%;
+    width: 100%; 
+}
+.mat-progress-spinner{
+    margin: auto;
+    height: 5em;
+    svg circle{
+        stroke: $medair-color;
+    }
+}
+
+mat-form-field{
+    width: 350px;
+}
+
+span{
+    margin: 0.2em;
+}
+.spanFloat{
+    float: right;
+    margin: 0 auto;
+}

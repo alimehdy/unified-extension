@@ -1,0 +1,283 @@
+<div class="flexCol">
+    <div class="flexRow spaceBetween">
+        <div>
+            <h1>ODK Data Import Extension</h1>
+        </div>
+        <div>
+            <p><img src="../../assets/logo_small.png"></p>
+        </div>
+    </div>
+    <mat-tab-group [(selectedIndex)]="tabIndex" color="warn">
+        <mat-tab label="Selecting Basic Info">
+            <span></span>
+            <div>
+
+                <!-- <mat-spinner *ngIf="isLoading" value="50" class="setSpinnerOnTop" diameter="75" color="medair-color">
+                </mat-spinner> -->
+                <div *ngIf="odkDataMsg!==''" class="setTextOnTop">
+                    {{odkDataMsg}}
+                </div>
+                <form [formGroup]="mainGroup" role="form" *ngIf="mainGroup">
+                    <div class="flexRow">
+                        <div>
+                            <mat-form-field color="warn" appearance="fill">
+                                <mat-label>ODKs list</mat-label>
+                                <mat-select formControlName="odkLists" [disabled]="isLoading" #SelectOdk>
+                                    <ngx-mat-select-search [placeholderLabel]="'Search ODKs'"
+                                        [noEntriesFoundLabel]="'No matching odk found'" formControlName="odkListsSearch"
+                                        ngDefaultControl>
+                                    </ngx-mat-select-search>
+                                    <mat-option
+                                        (click)="getOdkData(odk.formId, odk.dataUrl); getOdkFileName(odk.formName)"
+                                        *ngFor="let odk of filteredOdks | async" [value]="odk.dataUrl">
+                                        {{odk.formName}}</mat-option>
+                                </mat-select>
+                                <button mat-button matSuffix mat-icon-button type="button" class="clear-button"
+                                    (click)="clearSelection('odk'); $event.stopPropagation()">
+                                    <mat-icon>clear</mat-icon>
+                                </button>
+                            </mat-form-field>
+                        </div>
+                        <span></span>
+                        <div>
+                            <mat-form-field color="warn" appearance="fill">
+                                <mat-label>Org. Unit Levels</mat-label>
+                                <mat-select [disabled]="isLoading" formControlName="dhisLevels" [disabled]="isLoading">
+                                    <mat-option (click)="getAllOrganizations(level.level)"
+                                        *ngFor="let level of orgUnitLevels; let i = index" [value]="level.level">
+                                        {{level.displayName}} <span class="spanFloat"> level: {{level.level}} </span>
+                                    </mat-option>
+                                </mat-select>
+                                <button mat-button matSuffix mat-icon-button type="button" class="clear-button"
+                                    (click)="clearSelection('organizations'); $event.stopPropagation()">
+                                    <mat-icon>clear</mat-icon>
+                                </button>
+                            </mat-form-field>
+                        </div>
+                        <span></span>
+                        <div>
+                            <mat-form-field color="warn" appearance="fill">
+                                <mat-label>Org. Unit List</mat-label>
+                                <mat-select [disabled]="isLoading" formControlName="organization"
+                                    [disabled]="isLoading">
+                                    <ngx-mat-select-search [placeholderLabel]="'Search Organizations'"
+                                        [noEntriesFoundLabel]="'No matching org found'"
+                                        formControlName="organizationSearch" ngDefaultControl>
+                                    </ngx-mat-select-search>
+                                    <mat-option (click)="getProgramsByOrgUnitId(org.id)"
+                                        *ngFor="let org of filteredOrganization | async; let i = index"
+                                        [value]="org.id">
+                                        {{org.displayName}} </mat-option>
+                                </mat-select>
+                                <button mat-button matSuffix mat-icon-button type="button" class="clear-button"
+                                    (click)="clearSelection('organizations'); $event.stopPropagation()">
+                                    <mat-icon>clear</mat-icon>
+                                </button>
+                            </mat-form-field>
+                        </div>
+                        <span></span>
+                        <div>
+                            <mat-form-field color="warn" appearance="fill">
+                                <mat-label>DHIS Programs list</mat-label>
+                                <mat-select formControlName="dhisPrograms" [disabled]="isLoading">
+                                    <ngx-mat-select-search [placeholderLabel]="'Search ODKs'"
+                                        [noEntriesFoundLabel]="'No matching programs found'"
+                                        formControlName="dhisProgramsSearch" ngDefaultControl>
+                                    </ngx-mat-select-search>
+                                    <mat-option
+                                        (click)="getProgramStage(program.id); getProgramName(program.displayName); getTrackedEntityAttributes(program.id)"
+                                        *ngFor="let program of filteredPrograms | async" [value]="program.id">
+                                        {{program.displayName}}</mat-option>
+                                </mat-select>
+                                <button mat-button matSuffix mat-icon-button type="button" class="clear-button"
+                                    (click)="clearSelection('programs'); $event.stopPropagation()">
+                                    <mat-icon>clear</mat-icon>
+                                </button>
+                            </mat-form-field>
+                        </div>
+                        <span></span>
+                        <div>
+                            <mat-form-field color="warn" appearance="fill">
+                                <mat-label>Stage of Selected Program</mat-label>
+                                <mat-select formControlName="dhisStage" [disabled]="isLoading">
+                                    <mat-option (click)="getStageDataElements(stage.id)"
+                                        *ngFor="let stage of programStages" [value]="stage.id">
+                                        {{stage.displayName}}</mat-option>
+                                </mat-select>
+                                <!-- <button mat-button matSuffix mat-icon-button type="button" class="clear-button"
+                            (click)="clearSelection(); $event.stopPropagation()"
+                            >
+                            <mat-icon>clear</mat-icon>
+                        </button> -->
+                            </mat-form-field>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <span></span>
+            <div class="flexCol div-container" *ngIf="dataElementsDetails.length>0 && odkDataIndexes.length>0">
+
+                <div>
+                    <div>
+                        <h2>Select ONA fields that it should be removed from data before being uploaded.</h2>
+                    </div>
+                    <div>
+                        <h2>Currently there is {{odkDataIndexes.length}} ONA fields and {{dataElementsDetails.length}}
+                            Data
+                            elements.</h2>
+                    </div>
+                    <div>
+                        <form [formGroup]="onaDataFieldsGroup" *ngIf="onaDataFieldsGroup">
+                            <mat-form-field class="formFieldWidthIndexes" color="warn" appearance="fill">
+                                <mat-label>ONA Selected ODK Array</mat-label>
+                                <mat-select formControlName="fields" [disabled]="isLoading" multiple>
+                                    <ngx-mat-select-search [placeholderLabel]="'Search Fields'"
+                                        [noEntriesFoundLabel]="'No matching field found'" formControlName="fieldsSearch"
+                                        ngDefaultControl>
+                                    </ngx-mat-select-search>
+                                    <mat-option matTooltip="{{field}}" matTooltipPosition="right"
+                                        matTooltipClass="toolTip" (click)="getOnaFieldsToBeRemoved(field)"
+                                        *ngFor="let field of filteredFields | async; let i = index;" [value]="field">
+                                        {{field}}</mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                            <span></span>
+                            <button mat-raised-button color="warn" class="btnWidth" [disabled]="isLoading"
+                                (click)="removeUnnecessaryFields()">Remove
+                                Unnecessary fields</button>
+                            <span></span>
+                            <button mat-raised-button color="primary" class="btnWidth"
+                                [disabled]="isLoading || dataElementsDetails.length==0"
+                                (click)="generateMappingFields()">Start
+                                Mapping</button>
+                        </form>
+                    </div>
+                    <!-- <div>
+                    <button mat-raised-button color="warn" (click)="removeUnnecessaryFields()">Remove Unnecessary fields</button>
+                </div> -->
+                    <div *ngIf="removeUnnecessaryFieldsMsg!==''" class="errorMsg">
+                        {{removeUnnecessaryFieldsMsg}}
+                    </div>
+                </div>
+            </div>
+            <div class="errorMsg" *ngIf="showEmptyOdkMsg">
+                No ODK Data Available
+            </div>
+            <div class="errorMsg" *ngIf="showEmptyDEMsg">
+                No Data Elements Available within the selected stage
+            </div>
+        </mat-tab>
+        <mat-tab label="Mapping Fields">
+            <form [formGroup]="indexesForm" *ngIf="indexesForm">
+                <div class="flexCol div-container" *ngIf="dataElementsDetails.length>0 && odkDataIndexes.length>0">
+                    <div>
+                        <h2>Click on the button once all ONA fields are mapped to their related DHIS2 Fields</h2>
+                    </div>
+                    <div>
+                        <button mat-raised-button color="warn" class="btnWidth"
+                            [disabled]="isLoading || dataElementsDetails.length==0" (click)="mapData()">MAP
+                            DATA</button>
+                    </div>
+                    <div *ngIf="mapDataError!=''" class="errorMsg">
+                        {{mapDataError}}
+                    </div>
+                </div>
+                <span></span>
+                <div class="flexColEven">
+                    <!-- <mat-spinner *ngIf="isLoading" value="50" class="setSpinnerOnTop" diameter="75"
+                        color="medair-color">
+                    </mat-spinner> -->
+                    <div *ngIf="showFields && indexesForm">
+                        <div class="mapping">
+                            <!-- {{indexesForm.valid | json}} -->
+                            <div *ngFor="let controlName of odkDataIndexes">
+                                <span></span>
+                                <div>
+                                    <!-- <div *ngFor="let type of typeArr; let idx as index">
+                                        <div *ngIf="type.field==controlName">{{type.type}}</div>
+                                    </div> -->
+                                    <h3>ONA field: {{controlName}}</h3>
+                                </div>
+                                <!-- <div *ngIf="!controlName.valid">
+                                    {{controlName.errors | json}}
+                                </div> -->
+                                <mat-form-field class="formFieldWidth" color="warn" appearance="fill">
+                                    <mat-label>{{controlName}}</mat-label>
+                                    <mat-select [formControlName]="controlName">
+                                        <ngx-mat-select-search [placeholderLabel]="'Search Data Elements'"
+                                            [noEntriesFoundLabel]="'No matching field found'"
+                                            formControlName="dataElementSearch" ngDefaultControl>
+                                        </ngx-mat-select-search>
+
+                                        <mat-option matTooltip="{{de.displayName}} - {{de.valueType}}"
+                                            matTooltipPosition="right" matTooltipClass="toolTip"
+                                            *ngFor="let de of filteredDataElements | async" [value]="de.id">
+                                            {{de.displayName}} - {{de.valueType}}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </mat-tab>
+        <mat-tab label="Uploading Data to DHIS2">
+            <div class="div-container" *ngIf="dataElementsDetails.length == 0">
+                No stage selected, please <a (click)="goToTab(0)">click here</a> to select an adequate DHIS2 stage to
+                upload data to
+            </div>
+            <span></span>
+            <form [formGroup]="uploadDataForm" *ngIf="uploadDataForm">
+                <div class="flexRowNoJustifiedContent">
+                    <div class="div-container">Select the connections keys from tracked attributes and ONA fields</div>
+                    <span></span>
+                    <div>
+                        <mat-form-field class="formFieldWidth" color="warn" appearance="fill">
+                            <mat-label>SELECT ODK field</mat-label>
+                            <mat-select formControlName="keyField">
+                                <mat-option matTooltip="{{controlName}}" matTooltipPosition="right"
+                                    matTooltipClass="toolTip"
+                                    *ngFor="let controlName of initialOdkDataIndexes; let i = index;"
+                                    [value]="controlName">
+                                    {{controlName}}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                    <span></span>
+                    <div>
+                        <mat-form-field color="warn" appearance="fill">
+                            <mat-label>SELECT DHIS2 Attribute</mat-label>
+                            <mat-select formControlName="keyFieldAttribute">
+                                <mat-option matTooltip="{{te.displayShortName}}" matTooltipPosition="right"
+                                    matTooltipClass="toolTip" *ngFor="let te of trackedEntityDetails; let i = index;"
+                                    [value]="te.id">
+                                    {{te.displayName}}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                </div>
+                <span></span>
+            </form>
+            <span></span>
+            <div class="flexCol">
+                <button (click)="uploadData()" mat-raised-button color="primary" class="fullWidth"
+                    [disabled]="isLoading || dataElementsDetails.length==0 || !uploadDataForm.valid">Start
+                    Upload</button>
+            </div>
+            <div class="errorMsg">
+                Uploading: {{odkLength}}
+            </div>
+            <!-- <button (click)="uploadData()" mat-raised-button color="primary" class="fullWidth"
+                        >Start Upload</button> -->
+        </mat-tab>
+
+    </mat-tab-group>
+</div>
+<!-- <button (click)="exportRelationShips('de', 'de')" mat-raised-button color="primary" class="fullWidth"
+                        >exportRelationShips</button> -->
+<span></span>

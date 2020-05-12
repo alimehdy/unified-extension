@@ -1,0 +1,26 @@
+{
+    "version": "1.0",
+    "name": "ODK Data Import",
+    "description": "This app meant to be used for ODK Data import to DHIS2",
+    "launch_path": "/index.html",
+    "appType": "APP",
+    "icons": {
+        "48": "assets/logo_48.png"
+    },
+    "developer": {
+        "name": "Ali MEHDY - IM Team - MEDAIR Lebanon",
+        "url": "https://medair.dhis2.bluesquare.org/"
+    },
+    "default_locale": "en",
+    "activities": {
+        "dhis": {
+            "href": "https://medair.dhis2.bluesquare.org/",
+            "namespace": "my-namespace"
+        }
+    },
+    "authorities": [
+         "MY_APP_ADD_NEW",
+         "MY_APP_UPDATE",
+         "MY_APP_DELETE"
+    ]
+}
