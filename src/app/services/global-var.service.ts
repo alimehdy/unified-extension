@@ -7,7 +7,7 @@ export class GlobalVarService {
   // Odk Lists
   odkListsUrl = 'https://api.ona.io/api/v1/projects.json?';
   odkDataBasicUrl = 'https://api.ona.io/api/v1/data/';
-
+  odkStartsWith = 'Unified_';
   // DHIS2
   dhisOrganizationUnitLevels = 'https://medair.dhis2.bluesquare.org/api/29/filledOrganisationUnitLevels';
   // allOrganizationUrl = 'https://medair.dhis2.bluesquare.org/api/30/organisationUnits.json?fields=[id,displayName,children]&paging=false';

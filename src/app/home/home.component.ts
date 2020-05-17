@@ -67,7 +67,22 @@ export class HomeComponent extends BaseClass implements OnInit {
                           'meta/instanceName', 'start', 'today', '_attachments', '_bamboo_dataset_id',
                           '_duration', '_edited', '_geolocation', '_last_edited', '_media_all_received',
                           '_media_count', '_notes', '_status', '_submission_time', '_submitted_by', '_tags',
-                          '_total_media', '_uuid', '_version', '_xform_id', '_xform_id_string'];
+                          '_total_media', '_uuid', '_version', '_xform_id', '_xform_id_string',
+                        // Other fields
+                        'consent', 'assessment_unhcr/ngo', 'assessment_unhcr/pcode', 'assessment_unhcr/cadaster',
+                        'assessment_unhcr/district', 'assessment_unhcr/enumerator', 'assessment_unhcr/supervisor',
+                        'assessment_unhcr/pcode_available', 'assessment_unhcr/hh_registration/gov_id',
+                        'assessment_unhcr/hh_registration/hh_name', 'assessment_unhcr/hh_registration/hh_id_gov',
+                        'assessment_unhcr/hh_registration/phone_number', 'assessment_unhcr/hh_registration/registered_unhcr',
+                        'assessment_unhcr/hh_registration/registered_medair', 'assessment_unhcr/hh_registration/hh_id_unhcr',
+                        'assessment_unhcr/hh_registration/UNHCR_ID_match', 'assessment_unhcr/area_calc', 'assessment_unhcr/individuals_calc',
+                        'assessment_unhcr/broken_structure_calc', 'assessment_unhcr/broken_walls_0_calc', 'assessment_unhcr/broken_walls_2_calc',
+                        'assessment_unhcr/shelter_bracing_calc', 'assessment_unhcr/broken_roof_0_calc', 'assessment_unhcr/broken_roof_1_calc',
+                        'assessment_unhcr/distance_roof_calc', 'assessment_unhcr/distance_walls_calc', 'assessment_unhcr/layers_walls_calc',
+                        'assessment_unhcr/layers_roof_calc', 'assessment_unhcr/layers_roof_calc1', 'assessment_unhcr/evidence_leakage_calc1',
+                        'assessment_unhcr/layers_evidence_calc', 'assessment_unhcr/tear_irreparable_calc', 'assessment_unhcr/SSB_ITS_calc',
+                        'assessment_unhcr/Non_Family_calc', 'assessment_unhcr/exclusion_criteria_calc', 'assessment_unhcr/exclusion_criteria_calc1'
+                        ];
 
   deleteMetadataFields = true;
   // Promises
@@ -285,13 +300,24 @@ export class HomeComponent extends BaseClass implements OnInit {
         this.loader.hideLoader();
         Object.keys(resp).forEach((key) => {
           Object.keys(resp[key].forms).forEach(async (idx) => {
-            await this.odkList.push({
-              formId: resp[key].forms[idx].formid,
-              formName: resp[key].forms[idx].name,
-              dataUrl: this.globalVar.odkDataBasicUrl + resp[key].forms[idx].formid,
-              folderUrl: resp[key].url
-            });
+            const formNameValue = resp[key].forms[idx].name;
+            if (formNameValue.startsWith(this.globalVar.odkStartsWith)) {
+              await this.odkList.push({
+                formId: resp[key].forms[idx].formid,
+                formName: resp[key].forms[idx].name,
+                dataUrl: this.globalVar.odkDataBasicUrl + resp[key].forms[idx].formid,
+                folderUrl: resp[key].url
+              });
+            }
           });
+        });
+        this.odkList.sort((a, b) => {
+          if (a.formName < b.formName) {
+            return 1;
+          }
+          if (a.formName > b.formName) {
+            return -1;
+          }
         });
         this.filteredOdks.next(this.odkList.slice());
         this.Select.open();
