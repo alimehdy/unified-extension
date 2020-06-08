@@ -7,7 +7,7 @@ import { throwError } from 'rxjs';
 
 
 const dhisUser = 'Ali.Mehdy';
-const dhisPassword = 'LBN22v10+LBN22v10';
+const dhisPassword = 'LBN22v10!LBN22v10';
 
 const onaUser = 'im_officer_leb';
 const onaPassword = 'LBNIM22v10';

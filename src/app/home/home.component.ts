@@ -123,7 +123,6 @@ export class HomeComponent extends BaseClass implements OnInit {
     this.createUploadDataForm();
     this.getOdkLists();
     // this.getAllOrganizations();
-    this.getOrganizationUnitLevels();
     this.mainGroup.controls.odkListsSearch.valueChanges
       .pipe(takeUntil(this._onDestroy))
       .subscribe(() => {
@@ -139,6 +138,8 @@ export class HomeComponent extends BaseClass implements OnInit {
       .subscribe(() => {
         this.filterOrganization();
       });
+
+    this.getOrganizationUnitLevels();
   }
   // tslint:disable-next-line: use-lifecycle-interface
   ngOnDestroy() {
@@ -740,8 +741,13 @@ export class HomeComponent extends BaseClass implements OnInit {
         return 1;
       }
     });
+
     this.filteredDataElements.next(this.dataElementsDetails.slice());
+    this.automaticMapping();
     // console.log(this.filteredDataElements);
+  }
+
+  automaticMapping() {
   }
 
   async createIndexesForm(extractedIndexesArray) {
