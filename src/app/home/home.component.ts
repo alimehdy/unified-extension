@@ -64,40 +64,49 @@ export class HomeComponent extends BaseClass implements OnInit {
   getInitialOdkDataArray;
   onaFieldsToBeRemoved: any[] = [];
   metadataFieldsArray: any[] = ['deviceid', 'formhub/uuid', 'meta/deprecatedID', 'meta/instanceID', 'end',
-                          'meta/instanceName', 'start', 'today', '_attachments', '_bamboo_dataset_id',
-                          '_duration', '_edited', '_geolocation', '_last_edited', '_media_all_received',
-                          '_media_count', '_notes', '_status', '_submission_time', '_submitted_by', '_tags',
-                          '_total_media', '_uuid', '_version', '_xform_id', '_xform_id_string',
-                        // Other fields
-                        'consent', 'assessment_unhcr/ngo', 'assessment_unhcr/pcode', 'assessment_unhcr/cadaster',
-                        'assessment_unhcr/district', 'assessment_unhcr/enumerator', 'assessment_unhcr/supervisor',
-                        'assessment_unhcr/pcode_available', 'assessment_unhcr/hh_registration/gov_id',
-                        'assessment_unhcr/hh_registration/hh_name', 'assessment_unhcr/hh_registration/hh_id_gov',
-                        'assessment_unhcr/hh_registration/phone_number', 'assessment_unhcr/hh_registration/registered_unhcr',
-                        'assessment_unhcr/hh_registration/registered_medair', 'assessment_unhcr/hh_registration/hh_id_unhcr',
-                        'assessment_unhcr/hh_registration/UNHCR_ID_match', 'assessment_unhcr/area_calc', 'assessment_unhcr/individuals_calc',
-                        'assessment_unhcr/broken_structure_calc', 'assessment_unhcr/broken_walls_0_calc', 'assessment_unhcr/broken_walls_2_calc',
-                        'assessment_unhcr/shelter_bracing_calc', 'assessment_unhcr/broken_roof_0_calc', 'assessment_unhcr/broken_roof_1_calc',
-                        'assessment_unhcr/distance_roof_calc', 'assessment_unhcr/distance_walls_calc', 'assessment_unhcr/layers_walls_calc',
-                        'assessment_unhcr/layers_roof_calc', 'assessment_unhcr/layers_roof_calc1', 'assessment_unhcr/evidence_leakage_calc1',
-                        'assessment_unhcr/layers_evidence_calc', 'assessment_unhcr/tear_irreparable_calc', 'assessment_unhcr/SSB_ITS_calc',
-                        'assessment_unhcr/Non_Family_calc', 'assessment_unhcr/exclusion_criteria_calc', 'assessment_unhcr/exclusion_criteria_calc1'
-                        ];
+    'meta/instanceName', 'start', 'today', '_attachments', '_bamboo_dataset_id',
+    '_duration', '_edited', '_geolocation', '_last_edited', '_media_all_received',
+    '_media_count', '_notes', '_status', '_submission_time', '_submitted_by', '_tags',
+    '_total_media', '_uuid', '_version', '_xform_id', '_xform_id_string',
+    // Other fields
+    // '_id',
+    // 'assessment_unhcr/dateofmonitoring',
+    'assessment_unhcr/evidence_leakage_calc',
+    // 'assessment_unhcr/score_unhcr',
+    'assessment_unhcr/technical_assessment/ngo_dist_fe', 'assessment_unhcr/technical_assessment/color_pressure_gauge',
+    'assessment_unhcr/hh_registration/Medair_ID_match',
+    'assessment_unhcr/hh_registration/hh_id_unhcr_scanned', 'assessment_unhcr/supervisor_other',
+    'consent', 'assessment_unhcr/ngo', 'assessment_unhcr/pcode', 'assessment_unhcr/cadaster',
+    'assessment_unhcr/enumerator_other',
+    'assessment_unhcr/district', 'assessment_unhcr/enumerator', 'assessment_unhcr/supervisor',
+    'assessment_unhcr/pcode_available', 'assessment_unhcr/hh_registration/gov_id',
+    'assessment_unhcr/hh_registration/hh_name', 'assessment_unhcr/hh_registration/hh_id_gov',
+    'assessment_unhcr/hh_registration/phone_number', 'assessment_unhcr/hh_registration/registered_unhcr',
+    'assessment_unhcr/hh_registration/registered_medair', 'assessment_unhcr/hh_registration/hh_id_unhcr',
+    'assessment_unhcr/hh_registration/UNHCR_ID_match', 'assessment_unhcr/area_calc', 'assessment_unhcr/individuals_calc',
+    'assessment_unhcr/broken_structure_calc', 'assessment_unhcr/broken_walls_0_calc', 'assessment_unhcr/broken_walls_2_calc',
+    'assessment_unhcr/shelter_bracing_calc', 'assessment_unhcr/broken_roof_0_calc', 'assessment_unhcr/broken_roof_1_calc',
+    'assessment_unhcr/distance_roof_calc', 'assessment_unhcr/distance_walls_calc', 'assessment_unhcr/layers_walls_calc',
+    'assessment_unhcr/layers_roof_calc', 'assessment_unhcr/layers_roof_calc1', 'assessment_unhcr/evidence_leakage_calc1',
+    'assessment_unhcr/layers_evidence_calc', 'assessment_unhcr/tear_irreparable_calc', 'assessment_unhcr/SSB_ITS_calc',
+    'assessment_unhcr/Non_Family_calc', 'assessment_unhcr/exclusion_criteria_calc', 'assessment_unhcr/exclusion_criteria_calc1'
+  ];
 
   deleteMetadataFields = true;
   // Promises
   deInfoPromise: Promise<any>;
 
   // Excel export arrays
-  elementNotEnrolled: any;
-  elementWithNoEventId: any;
-  elementDoesNotExistOnDHIS: any;
-  unableToAddIntoTheStageArray: any;
+  elementNotEnrolled: any[] = [];
+  elementWithNoEventId: any[] = [];
+  elementDoesNotExistOnDHIS: any[] = [];
+  unableToAddIntoTheStageArray: any[] = [];
   successFullyAddedData: any[];
 
   trackedEntityDetails: any[] = [];
   typeArr: any[] = [];
   odkLength = 0;
+  cannotGenerateEventId: any[] = [];
 
   constructor(private injector: Injector, private datePipe: DatePipe, private connectionService: ConnectionService) {
     super(injector);
@@ -532,11 +541,11 @@ export class HomeComponent extends BaseClass implements OnInit {
     this.showFields = false;
     if (this.onaFieldsToBeRemoved === undefined || this.onaFieldsToBeRemoved.length === 0) {
       this.removeUnnecessaryFieldsMsg = 'No fields selected to be removed';
-    // } else if ((this.odkDataIndexes.length - parseInt((this.onaFieldsToBeRemoved[0].length), 10)) < this.dataElementsDetails.length) {
-    //   this.removeUnnecessaryFieldsMsg = 'Number of fields selected will drop the remaining into less than the data elements field number';
+      // } else if ((this.odkDataIndexes.length - parseInt((this.onaFieldsToBeRemoved[0].length), 10)) < this.dataElementsDetails.length) {
+      //   this.removeUnnecessaryFieldsMsg = 'Number of fields selected will drop the remaining into less than the data elements field number';
     } else if (this.onaFieldsToBeRemoved[0].length > 0
       // && this.odkDataIndexes.length !== this.dataElementsDetails.length
-      ) {
+    ) {
       this.getOdkDataArray.forEach((row) => {
         this.onaFieldsToBeRemoved[0].forEach(key => { delete row[key]; });
       });
@@ -748,6 +757,57 @@ export class HomeComponent extends BaseClass implements OnInit {
   }
 
   automaticMapping() {
+    console.log(this.dataElementsDetails);
+    // for (const indexField of this.odkDataIndexes) {
+    //   console.log('Field: ', indexField);
+    //   this.indexesForm.get(indexField).setValue(indexField);
+    //   console.log(this.indexesForm.get(indexField).value);
+    // }
+    this.indexesForm.get('assessment_unhcr/wood_score').setValue('QEfZXmE4Htl');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/expiry_date').setValue('Y3tRbvoyqUn');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_roof/evidence_leakage').setValue('pS8xdgt8B1m');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/vulnerability_criteria/child_hh').setValue('yUnOKMuC2Sa');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/vulnerability_criteria/female_hh').setValue('KwmIXl6Lub3');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/vulnerability_criteria/elderly_hh').setValue('w72z9m5LQK8');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/vulnerability_criteria/disabled_hh').setValue('kkH9DhcZ40z');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/vulnerability_criteria/over_three_children').setValue('eVjKkVVSELP');
+    this.indexesForm.get('assessment_unhcr/plastic_score').setValue('Kq30CJ5FSAn');
+    this.indexesForm.get('assessment_unhcr/score_unhcr').setValue('tcURaivGj06');
+    this.indexesForm.get('assessment_unhcr/case_HH_result').setValue('dzd3NDmx8oo');
+    this.indexesForm.get('assessment_unhcr/layers_evidence_calc1').setValue('nibIAJJ8RKw');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/have_FE').setValue('LsT6Vd3Z3ig');
+    this.indexesForm.get('assessment_unhcr/automatic_eligibility/SSB_ITS').setValue('hJboAaChf9C');
+    this.indexesForm.get('assessment_unhcr/automatic_eligibility/Non_family').setValue('sA5yhCRFbW8');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/share_fe').setValue('VRjgViCp9lu');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/know_use_FE').setValue('ya4z5Y8DLtZ');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/door_lockable').setValue('thDxeirmuRD');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/hh_specific_needs').setValue('axWzKVvOaV5');
+    this.indexesForm.get('assessment_unhcr/automatic_eligibility/exclusion_criteria').setValue('RUJyztpzZGi');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/kit_general/kit_unhcr').setValue('TIP9vTG0wBO');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_roof/layers_roof').setValue('QWr5jS7aAFe');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/hh_checked_protection_cases').setValue('avVjGv0xyzt');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_roof/broken_roof_0').setValue('uqJSwTAYGM3');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_roof/distance_roof').setValue('cFk69enMOoj');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/overcrowding_assessment/area').setValue('lvuf6utBlq9');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_structure/shelter_bracing').setValue('mwFGbe9wjWG');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/kit_general/partition_recomendation').setValue('JxyQmMB4Cd8');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/overcrowding_assessment/individuals').setValue('CvVF9QZwuoF');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/Extent_permanent_structure/roof_zinc').setValue('iCvSap1FfRU');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_structure/broken_structure').setValue('F8Ln4n782xH');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_walls_external/layers_walls').setValue('w1IJeAo03vI');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_structure/material_structure').setValue('iJqjwHPwSSn');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_walls_external/broken_walls_0').setValue('mHjwTyz7Jkf');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_walls_external/distance_walls').setValue('pDwjESn3WtD');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/Extent_permanent_structure/partition_hollow').setValue('s1iXIaX3cEs');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/Extent_permanent_structure/outerwalls_hollow').setValue('YQhGXE40FYo');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/member_use_wheelchair').setValue('wKJmiYiV80F');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/Extent_permanent_structure/partition_nbr_rowblock').setValue('mlvCkh6o1VE');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/Extent_permanent_structure/outerwalls_nbr_rowblock').setValue('DR0g8f9K7BL');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/ngo_dist_fe_other').setValue('yPVtT3xaiNi');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_walls_external/tear_irreparable').setValue('BP5V6t3t8Ag');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_walls_external/broken_walls_2').setValue('xZDjgOAhfwN');
+    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_roof/broken_roof_1').setValue('jD8HtaZBr2E');
+    this.indexesForm.get('assessment_unhcr/dateofmonitoring').setValue('eventDate');
   }
 
   async createIndexesForm(extractedIndexesArray) {
@@ -761,7 +821,7 @@ export class HomeComponent extends BaseClass implements OnInit {
       .pipe(takeUntil(this._onDestroy))
       .subscribe(() => {
         this.filterDataElements();
-    });
+      });
   }
 
   mapData() {
@@ -792,12 +852,12 @@ export class HomeComponent extends BaseClass implements OnInit {
     // if (mainCounter === 0) {
     const newDataArray = [];
     this.getOdkDataArray.forEach(e => {
-        const newItem = {};
-        this.odkDataIndexes.forEach((arrayIndexControl) => {
-          newItem[this.indexesForm.get(arrayIndexControl).value] = e[arrayIndexControl];
-        });
-        newDataArray.push(newItem);
+      const newItem = {};
+      this.odkDataIndexes.forEach((arrayIndexControl) => {
+        newItem[this.indexesForm.get(arrayIndexControl).value] = e[arrayIndexControl];
       });
+      newDataArray.push(newItem);
+    });
     this.getOdkDataArray = newDataArray;
     this.isLoading = false;
     this.loader.hideLoader();
@@ -838,8 +898,9 @@ export class HomeComponent extends BaseClass implements OnInit {
       this.api.getData(this.globalVar.checkEnrollementUrl + returnedInstanceID +
         '.json?program=' + programId + '&fields=' + fields, 'dhis').subscribe(
           (resp) => {
+            console.log('Enrollment: ', resp);
             // if (resp['httpStatusCode'] === 200) {
-              resolve(resp);
+            resolve(resp);
             // } else if (resp['httpStatusCode'] !== 500) {
             //   this.elementNotEnrolled['Reason'] = 'Could not check if this instance ID is enrolled';
             //   this.elementNotEnrolled.push(dataArray);
@@ -880,9 +941,14 @@ export class HomeComponent extends BaseClass implements OnInit {
     this.selectedOdkFormName = formName;
   }
 
-  exportRelationShips(successFullyAddedData, elementNotEnrolled, elementWithNoEventId,
-                      elementDoesNotExistOnDHIS, unableToAddIntoTheStageArray, excelTitle = '') {
-    excelTitle = excelTitle === '' ? 'odk_log_file' : excelTitle;
+  exportRelationShips() {
+    const excelTitle = 'odk_log_file';
+    const elementNotEnrolled = this.elementNotEnrolled;
+    const elementWithNoEventId = this.elementWithNoEventId;
+    const elementDoesNotExistOnDHIS = this.elementDoesNotExistOnDHIS;
+    const unableToAddIntoTheStageArray = this.unableToAddIntoTheStageArray;
+    // let excelTitle = 'odk_import_log_file_ ' +
+    // excelTitle = excelTitle === '' ? 'odk_log_file' : excelTitle;
     const wb: XLSX.WorkBook = XLSX.utils.book_new();
     // const wsDataAddedToStage: XLSX.WorkSheet = XLSX.utils.json_to_sheet(successFullyAddedData);
     // XLSX.utils.book_append_sheet(wb, wsDataAddedToStage, 'Data successfully added');
@@ -892,6 +958,9 @@ export class HomeComponent extends BaseClass implements OnInit {
 
     const wsNoEvent: XLSX.WorkSheet = XLSX.utils.json_to_sheet(elementWithNoEventId);
     XLSX.utils.book_append_sheet(wb, wsNoEvent, 'Data with no available event');
+
+    const wsNoEventGenId: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.cannotGenerateEventId);
+    XLSX.utils.book_append_sheet(wb, wsNoEventGenId, 'Cannot generate eventId');
 
     const wsDoesNotExist: XLSX.WorkSheet = XLSX.utils.json_to_sheet(elementDoesNotExistOnDHIS);
     XLSX.utils.book_append_sheet(wb, wsDoesNotExist, 'Data does not exist at all');
@@ -959,12 +1028,12 @@ export class HomeComponent extends BaseClass implements OnInit {
           // console.log(this.successFullyAddedData, this.unableToAddIntoTheStageArray);
         },
         (error) => {
-          dataArray['Reason'] = error;
+          // dataArray['Reason'] = error;
           this.unableToAddIntoTheStageArray.push(dataArray);
+          console.log(error);
           reject();
           // this.isLoading = false;
           // this.loader.hideLoader();
-          console.log(error);
         }
       );
     });
@@ -984,6 +1053,38 @@ export class HomeComponent extends BaseClass implements OnInit {
     });
   }
 
+  addEventAndReturnId(instanceId, programId, enrollment, orgUnit, programStageId, dataValues) {
+    const myDate = new Date();
+    const eventDate = this.datePipe.transform(myDate, 'yyyy-MM-dd');
+    return new Promise((resolve, reject) => {
+      // const events = {};
+      const events = {
+        events: [{
+          dataValues: dataValues,
+          enrollment: enrollment,
+          eventDate: eventDate,
+          notes: [],
+          orgUnit: orgUnit,
+          program: programId,
+          programStage: programStageId,
+          status: 'COMPLETED',
+          trackedEntityInstance: instanceId
+        }]
+      };
+      // events.push(data);
+      this.api.postData(this.globalVar.addEventDataUrljson, 'dhis2', events, 30000).subscribe(
+        (response) => {
+          console.log('Event new ID: ', response['response']['importSummaries'][0]['reference']);
+          resolve(response['response']['importSummaries'][0]['reference']);
+        },
+        (error) => {
+          console.log('Event ID error: ', error);
+          reject();
+        }
+      );
+    });
+  }
+
   async uploadData() {
     this.odkLength = 0;
     this.isLoading = true;
@@ -992,6 +1093,7 @@ export class HomeComponent extends BaseClass implements OnInit {
     this.elementWithNoEventId = [];
     this.elementDoesNotExistOnDHIS = [];
     this.unableToAddIntoTheStageArray = [];
+    this.cannotGenerateEventId = [];
     this.successFullyAddedData = [];
     const myDate = new Date();
     const enrollDate = this.datePipe.transform(myDate, 'yyyy-MM-dd');
@@ -1001,87 +1103,99 @@ export class HomeComponent extends BaseClass implements OnInit {
     const data = this.getOdkDataArray;
     const ou = this.mainGroup.controls.organization.value;
     const programId = this.mainGroup.controls.dhisPrograms.value;
+    const stageId = this.mainGroup.controls.dhisStage.value;
     // Adding key field to the data that will be uploaded
     // tslint:disable-next-line: prefer-for-of
     for (let i = 0; i < data.length; i++) {
+      console.log('KeyFieldAttr: ', keyFieldAttribute, this.getInitialOdkDataArray[i][keyField]);
+      console.log(typeof data[i]);
       data[i][keyFieldAttribute] = this.getInitialOdkDataArray[i][keyField];
+      console.log(data[i], data[i][keyFieldAttribute]);
     }
     // From the array
     // const searchValue = 'H0000012223';
     // 1. Search value API call
-    this.odkLength = this.dataElementsDetails.length;
+    this.odkLength = this.getOdkDataArray.length;
     for (const elem of data) {
+      // console.log(elem);
+      if (elem['OcuwLhE6Gu0'] === 'H0000016857') {
       const searchValue = elem[keyFieldAttribute];
+      console.log('ID: ', searchValue);
       // Drop the field from the array to avoid an error of data element does not exists on DHIS2
       delete elem[keyFieldAttribute];
       const eventDate = elem['eventDate'];
       delete elem['eventDate'];
 
-      let eventsArray = [];
-      let eventId = '';
+      const eventsArray = [];
+      const eventId = '';
       // tslint:disable-next-line: max-line-length
       const appendToUrlEqual = '&ou=' + ou + '&ouMode=ACCESSIBLE&program=' + programId + '&filter=' + keyFieldAttribute + ':EQ:' + searchValue;
-      const awaitCheckValue = await this.checkValueInDhis2(elem, searchValue, appendToUrlEqual, keyField, ou, programId).then(async (res) => {
+      await this.checkValueInDhis2(elem, searchValue, appendToUrlEqual, keyField, ou, programId).then(async (res) => {
         if (res['rows'].length > 0) {
           const returnedInstanceID = res['rows'][0][0];
+          console.log('returnedInstanceID: ', returnedInstanceID)
           // Check if enrolled
-          const awaitEnrolled = await this.checkInstanceEnrollment(elem, returnedInstanceID, programId, '[enrollments]').then(async (enroll) => {
-            const awaitEventId = await this.getEventId(returnedInstanceID, programId).then(async (event) => {
-              eventsArray = event['enrollments'][0]['events'];
-              // Save the event instance id into dhis2
-              const eventElem = eventsArray.find(e => e.programStage === this.mainGroup.controls.dhisStage.value);
-              eventId = eventElem.event;
-              // console.log('enroll ids: ', enroll['enrollments'], enroll['enrollments'][0].program, programId);
-              if (enroll['enrollments'][0].program === programId && enroll['enrollments'][0].orgUnit === ou) {
-                // console.log(enroll['enrollments'][0].program, programId, enroll['enrollments'][0].orgUnit, ou);
-                // Upload data
-                // const data = {
-                //   trackedEntityInstance: returnedInstanceID, program: programId,
-                //   status: 'COMPLETED', orgUnit: ou, enrollmentDate: enrollDate, incidentDate: enrollDate
-                // };
-                this.uploadRow(elem, eventId, programId, this.mainGroup.controls.dhisStage.value,
-                  ou, returnedInstanceID, 'COMPLETED', eventDate, eventDate, enrollDate).then((uploadArray) => {
-                    // Add to successFullyAddedData
-                    // console.log(elem);
-                    // this.successFullyAddedData.push(elem);
-                    console.log('Stage Data Added');
+          const dataValues = [];
+          for (const key in elem) {
+            if (elem.hasOwnProperty(key) && key !== '') {
+              dataValues.push({ value: elem[key], dataElement: key });
+            }
+          }
+          await this.checkInstanceEnrollment(elem, returnedInstanceID, programId, '*&paging=FALSE').then(async (enroll) => {
+                await this.addEventAndReturnId(returnedInstanceID, programId,
+                  enroll['enrollments'][0].enrollment, ou, stageId, dataValues).then(async (eventId) => {
+                    console.log('Generated Event ID: ', eventId);
+                    eventId = eventId;
+                    // console.log('enroll ids: ', enroll['enrollments'], enroll['enrollments'][0].program, programId);
+                    if (enroll['enrollments'][0].program === programId && enroll['enrollments'][0].orgUnit === ou) {
+
+                      // this.uploadRow(elem, eventId, programId, this.mainGroup.controls.dhisStage.value,
+                      //   ou, returnedInstanceID, 'COMPLETED', eventDate, eventDate, enrollDate).then((uploadArray) => {
+                      //     // Add to successFullyAddedData
+                      //     // console.log(elem);
+                      //     // this.successFullyAddedData.push(elem);
+                      //     console.log('Stage Data Added');
+                      //   }).catch((error) => {
+                      //     // this.unableToAddIntoTheStageArray.push(elem);
+                      //   });
+                    } else {
+                      // Enroll it into program
+                      const data = {
+                        trackedEntityInstance: returnedInstanceID, program: programId,
+                        status: 'COMPLETED', orgUnit: ou, enrollmentDate: enrollDate, incidentDate: enrollDate
+                      };
+                      // await this.enroll(data).then((res) => {
+                      //   this.uploadRow(elem, eventId, programId, this.mainGroup.controls.dhisStage.value,
+                      //     ou, returnedInstanceID, 'COMPLETED', eventDate, eventDate, enrollDate).then((uploadArray) => {
+                      //       // Add to successFullyAddedData
+                      //       // console.log(elem);
+                      //       // this.successFullyAddedData.push(elem);
+                      //       console.log('Stage Data Added');
+                      //     }).catch((error) => {
+                      //       // elem['Reason'] = error.response.conflicts[0].object + ' - ' + error.response.conflicts[0].value;
+                      //       // this.unableToAddIntoTheStageArray.push(elem);
+                      //       console.log(error);
+                      //     });
+                      // }).catch((rej) => {
+                      //   // Add to log array as not able to be enrolled
+                      //   this.elementNotEnrolled['Reason'] = 'Instance ID could not be enrolled';
+                      //   this.elementNotEnrolled.push(elem);
+                      // });
+                    }
                   }).catch((error) => {
-                    // this.unableToAddIntoTheStageArray.push(elem);
+                    this.cannotGenerateEventId.push(elem);
                   });
-              } else {
-                // Enroll it into program
-                const data = {
-                  trackedEntityInstance: returnedInstanceID, program: programId,
-                  status: 'COMPLETED', orgUnit: ou, enrollmentDate: enrollDate, incidentDate: enrollDate
-                };
-                await this.enroll(data).then((res) => {
-                  this.uploadRow(elem, eventId, programId, this.mainGroup.controls.dhisStage.value,
-                    ou, returnedInstanceID, 'COMPLETED', eventDate, eventDate, enrollDate).then((uploadArray) => {
-                      // Add to successFullyAddedData
-                      // console.log(elem);
-                      // this.successFullyAddedData.push(elem);
-                      console.log('Stage Data Added');
-                    }).catch((error) => {
-                      // elem['Reason'] = error.response.conflicts[0].object + ' - ' + error.response.conflicts[0].value;
-                      // this.unableToAddIntoTheStageArray.push(elem);
-                      console.log(error);
-                    });
-                }).catch((rej) => {
-                  // Add to log array as not able to be enrolled
-                  this.elementNotEnrolled['Reason'] = 'Instance ID could not be enrolled';
-                  this.elementNotEnrolled.push(elem);
-                });
-              }
+              // }
             }).catch((rejectEvent) => {
-              // Add to events id log
+              // \Add to events id log
               this.elementWithNoEventId['Reason'] = 'No event ID available';
               this.elementWithNoEventId.push(elem);
             });
-          }).catch((error) => {
-            // Add to array to be downloaded later into an excel file
-            console.log('Enrollment error: ', error);
+          // }).catch((error) => {
+          //   // Add to array to be downloaded later into an excel file
+          //   console.log('Enrollment error: ', error);
 
-          });
+          // });
         } else {
           // Add to array and to be downloaded into excel file later
           this.elementDoesNotExistOnDHIS['Reason'] = 'Could not find the key value on DHIS2';
@@ -1099,9 +1213,109 @@ export class HomeComponent extends BaseClass implements OnInit {
       }
       );
     }
+  }
     this.isLoading = false;
     this.loader.hideLoader();
-    this.exportRelationShips(this.successFullyAddedData, this.elementNotEnrolled, this.elementWithNoEventId,
-      this.elementDoesNotExistOnDHIS, this.unableToAddIntoTheStageArray, 'odk_import_log_file_ ' + this.selectedOdkFormName);
+    this.exportRelationShips();
   }
+
+  // async onFileChange(ev) {
+  //   let workBook = null;
+  //   let jsonData = null;
+  //   const reader = new FileReader();
+  //   const file = ev.target.files[0];
+  //   reader.onload = (event) => {
+  //     const data = reader.result;
+  //     workBook = XLSX.read(data, { type: 'binary', cellDates: true, dateNF: 'yyyy-MM-dd' });
+  //     jsonData = workBook.SheetNames.reduce((initial, name) => {
+  //       const sheet = workBook.Sheets[name];
+  //       initial[name] = XLSX.utils.sheet_to_json(sheet);
+  //       return initial;
+  //     }, {});
+  //     const dataString = JSON.stringify(jsonData['Sheet1']);
+  //     this.getOdkDataArray = JSON.parse(dataString);
+  //     // this.excelFromArray = JSON.parse(dataString);
+  //   };
+  //   reader.readAsBinaryString(file);
+  //   // this.showMsg = '';
+  //   this.initialOdkDataIndexes = [];
+  //   this.onaFieldsToBeRemoved = [];
+  //   this.getOdkDataArray = [];
+  //   this.getInitialOdkDataArray = [];
+  //   this.odkDataIndexes = [];
+  //   this.odkDataMsg = 'Getting the array of data and cleanning it from null values and checking sub-groups';
+  //   this.showEmptyOdkMsg = false;
+  //   this.showFields = false;
+  //   // this.loader.showLoader();
+  //   // Object.keys(resp).forEach((key) => {
+  //   //   this.getOdkDataArray.push(resp[key]);
+  //   // });
+  //   this.getInitialOdkDataArray = this.getOdkDataArray;
+  //   // Get the properties of the data array
+  //   let props = [];
+  //   props = Array.from(new Set(this.getOdkDataArray.flatMap(e => Object.keys(e), [])));
+  //   // Clean null values
+  //   for (const elem of this.getOdkDataArray) {
+  //     for (const prop of props) {
+
+  //       // We can use the same if condition for both comaprisons but it will stay like this for now
+  //       if (elem[prop] === null || elem[prop] === undefined) {
+  //         elem[prop] = '';
+  //       }
+
+  //       // Check if there empty arrays or arrays having null values like [null, null]
+  //       if (Array.isArray(elem[prop]) || typeof (elem[prop]) === 'object') {
+  //         if (elem[prop].indexOf(null) !== -1 || elem[prop].length === 0) {
+  //           elem[prop] = '';
+  //         }
+  //       }
+
+  //       // // Check if there is undefined/null values and replace it by empty values
+  //       // if (elem[prop] === undefined || elem[prop] === null) {
+  //       //   elem[prop] = '';
+  //       // }
+  //     }
+  //   }
+
+  //   // Getting the first array of begin-repeat nested array within the main data we've got from ONA
+  //   this.typeArr = [];
+  //   const newArr = this.getOdkDataArray.map((obj, idx) => {
+  //     const newObj = {};
+  //     // tslint:disable-next-line: forin
+  //     // for (const key in obj[0]) {
+  //     //   this.typeArr.push({type: typeof obj[key], field: key});
+  //     // }
+  //     for (const key in obj) {
+  //       const type = typeof obj[key];
+
+  //       if (type === 'object') {
+  //         // tslint:disable-next-line: forin
+  //         for (const subkey in obj[key][0]) {
+  //           newObj[key + '_' + subkey] = obj[key][0][subkey];
+  //         }
+  //       } else {
+  //         newObj[key] = obj[key];
+  //       }
+  //     }
+  //     // console.log(this.typeArr);
+  //     return newObj;
+  //   });
+
+  //   this.getOdkDataArray = newArr;
+  //   console.log(this.getOdkDataArray, this.getOdkDataArray.length, this.odkDataIndexes.length);
+  //   this.getOdkDataArray.length === 0 ? this.showEmptyOdkMsg = true : this.showEmptyOdkMsg = false;
+  //   // Delete metadata fields
+  //   if (this.deleteMetadataFields) {
+  //     await this.removeMetadataFields(this.getOdkDataArray);
+  //   }
+  //   // Extract arrays indexes/properties
+  //   this.odkDataIndexes = Object.values(this.extractArrayIndexes(this.getOdkDataArray));
+  //   this.initialOdkDataIndexes = this.odkDataIndexes;
+  //   console.log(this.getOdkDataArray, this.getOdkDataArray.length, this.odkDataIndexes.length);
+  //   this.filteredFields.next(this.odkDataIndexes.slice());
+  //   // this.OdkNestedArrayToString(this.odkDataIndexes, this.getOdkDataArray).then((res) => {
+  //   // });
+  //   console.log(this.getOdkDataArray);
+  //   this.createOnaDataFields();
+  // }
 }
