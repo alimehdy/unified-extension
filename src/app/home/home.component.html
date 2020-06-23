@@ -3,8 +3,8 @@
         <div>
             <h1>ODK Data Import Extension</h1>
         </div>
-        <div>
-            <p><img src="../../assets/logo_small.png"></p>
+        <div class="imgLogo">
+            <!-- <p><img src="../../assets/logo_small.png"></p> -->
         </div>
     </div>
     <mat-tab-group [(selectedIndex)]="tabIndex" color="warn">
@@ -18,7 +18,7 @@
                     {{odkDataMsg}}
                 </div>
                 <form [formGroup]="mainGroup" role="form" *ngIf="mainGroup">
-                    <div class="flexRow">
+                    <div class="flexRowJustifyEnd">
                         <div>
                             <mat-form-field color="warn" appearance="fill">
                                 <mat-label>ODKs list</mat-label>

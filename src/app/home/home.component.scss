@@ -6,6 +6,23 @@
     flex-wrap: wrap;
     flex-basis: 25%;
 }
+.flexRowJustifyEnd{
+    display: flex;
+    flex-direction: row;
+    justify-content: end;
+    flex-wrap: wrap;
+    flex-basis: 25%;
+}
+.imgLogo{
+    display: flex;
+    float: left;
+    // margin: 0 auto;
+    // margin-top: 2em;
+    width: 200px;
+    height: 80px;
+    background-image: url('../../assets/logo_small.png');
+    background-repeat: no-repeat;
+}
 .mapping{
     display: flex;
     flex-direction: row;
