@@ -1164,7 +1164,7 @@ export class HomeComponent extends BaseClass implements OnInit {
                 console.log('Generated Event ID: ', eventId);
                 eventId = eventId;
                 // console.log('enroll ids: ', enroll['enrollments'], enroll['enrollments'][0].program, programId);
-                if (enroll['enrollments'][0].program === programId && enroll['enrollments'][0].orgUnit === ou) {
+                // if (enroll['enrollments'][0].program === programId && enroll['enrollments'][0].orgUnit === ou) {
 
                   // this.uploadRow(elem, eventId, programId, this.mainGroup.controls.dhisStage.value,
                   //   ou, returnedInstanceID, 'COMPLETED', eventDate, eventDate, enrollDate).then((uploadArray) => {
@@ -1175,12 +1175,12 @@ export class HomeComponent extends BaseClass implements OnInit {
                   //   }).catch((error) => {
                   //     // this.unableToAddIntoTheStageArray.push(elem);
                   //   });
-                } else {
+                // } else {
                   // Enroll it into program
-                  const data = {
-                    trackedEntityInstance: returnedInstanceID, program: programId,
-                    status: 'ACTIVE', orgUnit: ou, enrollmentDate: enrollDate, incidentDate: enrollDate
-                  };
+                  // const data = {
+                  //   trackedEntityInstance: returnedInstanceID, program: programId,
+                  //   status: 'ACTIVE', orgUnit: ou, enrollmentDate: enrollDate, incidentDate: enrollDate
+                  // };
                   // await this.enroll(data).then((res) => {
                   //   this.uploadRow(elem, eventId, programId, this.mainGroup.controls.dhisStage.value,
                   //     ou, returnedInstanceID, 'COMPLETED', eventDate, eventDate, enrollDate).then((uploadArray) => {
@@ -1198,7 +1198,7 @@ export class HomeComponent extends BaseClass implements OnInit {
                   //   this.elementNotEnrolled['Reason'] = 'Instance ID could not be enrolled';
                   //   this.elementNotEnrolled.push(elem);
                   // });
-                }
+                // }
               }).catch((error) => {
                 this.cannotGenerateEventId.push(elem);
               });
