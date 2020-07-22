@@ -20,6 +20,13 @@
                 <form [formGroup]="mainGroup" role="form" *ngIf="mainGroup">
                     <div class="flexRowJustifyEnd">
                         <div>
+                            <input (change)="onFileChange($event)" id="fromFile" formControlName="fromFile" type="file"
+                                accept=".csv, .xlsx, .xlx, .json">
+                        </div>
+                    </div>
+                    <span></span>
+                    <div class="flexRowJustifyEnd">
+                        <div>
                             <mat-form-field color="warn" appearance="fill">
                                 <mat-label>ODKs list</mat-label>
                                 <mat-select formControlName="odkLists" [disabled]="isLoading" #SelectOdk>

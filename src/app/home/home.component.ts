@@ -69,9 +69,23 @@ export class HomeComponent extends BaseClass implements OnInit {
     '_media_count', '_notes', '_status', '_submission_time', '_submitted_by', '_tags',
     '_total_media', '_uuid', '_version', '_xform_id', '_xform_id_string',
     // Other fields
-    // '_id',
+    '_id',
+    '_parent_index',
+    '_index',
+    'assessment_unhcr/hh_registration/hh_id_medair_scanned',
+    'assessment_unhcr/_coordinates_precision',
+    'assessment_unhcr/_coordinates_altitude',
+    'assessment_unhcr/_coordinates_longitude',
+    'assessment_unhcr/_coordinates_latitude',
+    'assessment_unhcr/coordinates',
+    'assessment_unhcr/enumerator_casual',
+    '_parent_table_name',
     // 'assessment_unhcr/dateofmonitoring',
     'assessment_unhcr/evidence_leakage_calc',
+    'assessment_unhcr/technical_assessment/condition_structure/material_structure/wood',
+    'assessment_unhcr/technical_assessment/condition_structure/material_structure/steel',
+    'assessment_unhcr/hh_registration/hh_id_medair',
+    'assessment_unhcr/technical_assessment/vulnerability_criteria/reserved_name_for_field_list_labels_46',
     // 'assessment_unhcr/score_unhcr',
     'assessment_unhcr/technical_assessment/ngo_dist_fe', 'assessment_unhcr/technical_assessment/color_pressure_gauge',
     'assessment_unhcr/hh_registration/Medair_ID_match',
@@ -107,6 +121,7 @@ export class HomeComponent extends BaseClass implements OnInit {
   typeArr: any[] = [];
   odkLength = 0;
   cannotGenerateEventId: any[] = [];
+  ou: any[] = [];
 
   constructor(private injector: Injector, private datePipe: DatePipe, private connectionService: ConnectionService) {
     super(injector);
@@ -158,6 +173,7 @@ export class HomeComponent extends BaseClass implements OnInit {
 
   createMainGroup() {
     this.mainGroup = this.fb.group({
+      fromFile: new FormControl(''),
       odkLists: new FormControl(''),
       odkListsSearch: new FormControl(''),
       dhisLevels: new FormControl(''),
@@ -419,6 +435,146 @@ export class HomeComponent extends BaseClass implements OnInit {
         console.log(error);
       }
     );
+  }
+
+  async onFileChange(ev) {
+    // this.excelFromArray = [];
+    // this.excelToArray = [];
+    // this.isLoading = true;
+    this.getOdkDataArray = [];
+    this.ou = [];
+    this.getInitialOdkDataArray = [];
+    // this.showMsg = '';
+    this.loader.showLoader();
+    this.odkDataMsg = 'Loading File...';
+    // this.toArrayUnsuccess = [];
+    // this.fromArrayUnsuccess = [];
+    // this.toArrayUnsuccessEnroll = [];
+    // this.householdWithNoMembers = [];
+    // this.householdWithMembers = [];
+    // this.fromArrayUnsuccessEnroll = [];
+    let workBook = null;
+    let jsonData = null;
+    const reader = new FileReader();
+    const file = ev.target.files[0];
+    // this.lengthToArray = 0;
+    // this.lengthFromArray = 0;
+    const uploadPromise = new Promise((resolve, reject) => {
+      reader.onload = (event) => {
+        const data = reader.result;
+        workBook = XLSX.read(data, { type: 'binary', cellDates: true, dateNF: 'yyyy-MM-dd' });
+        jsonData = workBook.SheetNames.reduce((initial, name) => {
+          const sheet = workBook.Sheets[name];
+          initial[name] = XLSX.utils.sheet_to_json(sheet);
+          return initial;
+        }, {});
+        const dataString = JSON.stringify(jsonData['Sheet1']);
+        this.getOdkDataArray = JSON.parse(dataString);
+        console.log(`data ${this.getOdkDataArray}`);
+        resolve(JSON.parse(dataString));
+      };
+    });
+    uploadPromise.then((dataString) => {
+      this.getOdkDataArray = dataString;
+      Object.values(this.getOdkDataArray).forEach((item) => {
+        this.ou.push(item['ou']);
+      });
+      // this.ou = this.getOdkDataArray['ou'];
+      console.log(this.ou);
+      const odkDataPromise = new Promise(async (resolve, reject) => {
+        // this.api.getData(dataUrl, 'ona').subscribe(
+        //   async (resp) => {
+        this.loader.hideLoader();
+        this.isLoading = false;
+        this.odkDataMsg = '';
+        console.log(this.getOdkDataArray)
+        // Object.keys(dataString).forEach((key) => {
+        //   this.getOdkDataArray.push(dataString);
+        //   console.log(this.getOdkDataArray);
+        // });
+        this.getInitialOdkDataArray = this.getOdkDataArray;
+        // Get the properties of the data array
+        let props = [];
+        props = Array.from(new Set(this.getOdkDataArray.flatMap(e => Object.keys(e), [])));
+        // Clean null values
+        for (const elem of this.getOdkDataArray) {
+          for (const prop of props) {
+
+            // We can use the same if condition for both comaprisons but it will stay like this for now
+            if (elem[prop] === null || elem[prop] === undefined) {
+              elem[prop] = '';
+            }
+
+            // Check if there empty arrays or arrays having null values like [null, null]
+            if (Array.isArray(elem[prop]) || typeof (elem[prop]) === 'object') {
+              if (elem[prop].indexOf(null) !== -1 || elem[prop].length === 0) {
+                elem[prop] = '';
+              }
+            }
+
+            // // Check if there is undefined/null values and replace it by empty values
+            // if (elem[prop] === undefined || elem[prop] === null) {
+            //   elem[prop] = '';
+            // }
+          }
+        }
+
+        // Getting the first array of begin-repeat nested array within the main data we've got from ONA
+        this.typeArr = [];
+        const newArr = this.getOdkDataArray.map((obj, idx) => {
+          const newObj = {};
+          // tslint:disable-next-line: forin
+          // for (const key in obj[0]) {
+          //   this.typeArr.push({type: typeof obj[key], field: key});
+          // }
+          for (const key in obj) {
+            const type = typeof obj[key];
+
+            if (type === 'object') {
+              // tslint:disable-next-line: forin
+              for (const subkey in obj[key][0]) {
+                newObj[key + '_' + subkey] = obj[key][0][subkey];
+              }
+            } else {
+              newObj[key] = obj[key];
+            }
+          }
+          // console.log(this.typeArr);
+          return newObj;
+        });
+
+        this.getOdkDataArray = newArr;
+        console.log(this.getOdkDataArray, this.getOdkDataArray.length, this.odkDataIndexes.length);
+        this.getOdkDataArray.length === 0 ? this.showEmptyOdkMsg = true : this.showEmptyOdkMsg = false;
+        // Delete metadata fields
+        if (this.deleteMetadataFields) {
+          await this.removeMetadataFields(this.getOdkDataArray);
+        }
+        // Extract arrays indexes/properties
+        this.odkDataIndexes = Object.values(this.extractArrayIndexes(this.getOdkDataArray));
+        this.initialOdkDataIndexes = this.odkDataIndexes;
+        console.log(this.getOdkDataArray, this.getOdkDataArray.length, this.odkDataIndexes.length);
+        this.filteredFields.next(this.odkDataIndexes.slice());
+        // this.OdkNestedArrayToString(this.odkDataIndexes, this.getOdkDataArray).then((res) => {
+        // });
+        this.createOnaDataFields();
+        // console.log(`New Data ${this.getOdkDataArray}`);
+        resolve();
+      },
+        // (error) => {
+        //   this.isLoading = false;
+        //   this.loader.hideLoader();
+        //   this.odkDataMsg = '';
+        //   reject();
+        //   console.log(error);
+        //   }
+        // );
+      );
+    });
+    this.loader.hideLoader();
+    this.odkDataMsg = '';
+    reader.readAsBinaryString(file);
+    // this.showMsg = '';
   }
 
   async getOdkData(formId, dataUrl) {
@@ -754,62 +910,67 @@ export class HomeComponent extends BaseClass implements OnInit {
     });
 
     this.filteredDataElements.next(this.dataElementsDetails.slice());
-    this.automaticMapping();
+    setTimeout(() => {
+      this.automaticMapping();
+    }, 2000);
     // console.log(this.filteredDataElements);
   }
 
-  automaticMapping() {
+  async automaticMapping() {
+    console.log(this.odkDataIndexes)
     console.log(this.dataElementsDetails);
     // for (const indexField of this.odkDataIndexes) {
     //   console.log('Field: ', indexField);
     //   this.indexesForm.get(indexField).setValue(indexField);
     //   console.log(this.indexesForm.get(indexField).value);
     // }
-    this.indexesForm.get('assessment_unhcr/wood_score').setValue('QEfZXmE4Htl');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/expiry_date').setValue('Y3tRbvoyqUn');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_roof/evidence_leakage').setValue('pS8xdgt8B1m');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/vulnerability_criteria/child_hh').setValue('yUnOKMuC2Sa');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/vulnerability_criteria/female_hh').setValue('KwmIXl6Lub3');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/vulnerability_criteria/elderly_hh').setValue('w72z9m5LQK8');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/vulnerability_criteria/disabled_hh').setValue('kkH9DhcZ40z');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/vulnerability_criteria/over_three_children').setValue('eVjKkVVSELP');
-    this.indexesForm.get('assessment_unhcr/plastic_score').setValue('Kq30CJ5FSAn');
-    this.indexesForm.get('assessment_unhcr/score_unhcr').setValue('tcURaivGj06');
-    this.indexesForm.get('assessment_unhcr/case_HH_result').setValue('dzd3NDmx8oo');
-    this.indexesForm.get('assessment_unhcr/layers_evidence_calc1').setValue('nibIAJJ8RKw');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/have_FE').setValue('LsT6Vd3Z3ig');
-    this.indexesForm.get('assessment_unhcr/automatic_eligibility/SSB_ITS').setValue('hJboAaChf9C');
-    this.indexesForm.get('assessment_unhcr/automatic_eligibility/Non_family').setValue('sA5yhCRFbW8');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/share_fe').setValue('VRjgViCp9lu');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/know_use_FE').setValue('ya4z5Y8DLtZ');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/door_lockable').setValue('thDxeirmuRD');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/hh_specific_needs').setValue('axWzKVvOaV5');
-    this.indexesForm.get('assessment_unhcr/automatic_eligibility/exclusion_criteria').setValue('RUJyztpzZGi');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/kit_general/kit_unhcr').setValue('TIP9vTG0wBO');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_roof/layers_roof').setValue('QWr5jS7aAFe');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/hh_checked_protection_cases').setValue('avVjGv0xyzt');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_roof/broken_roof_0').setValue('uqJSwTAYGM3');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_roof/distance_roof').setValue('cFk69enMOoj');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/overcrowding_assessment/area').setValue('lvuf6utBlq9');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_structure/shelter_bracing').setValue('mwFGbe9wjWG');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/kit_general/partition_recomendation').setValue('JxyQmMB4Cd8');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/overcrowding_assessment/individuals').setValue('CvVF9QZwuoF');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/Extent_permanent_structure/roof_zinc').setValue('iCvSap1FfRU');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_structure/broken_structure').setValue('F8Ln4n782xH');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_walls_external/layers_walls').setValue('w1IJeAo03vI');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_structure/material_structure').setValue('iJqjwHPwSSn');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_walls_external/broken_walls_0').setValue('mHjwTyz7Jkf');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_walls_external/distance_walls').setValue('pDwjESn3WtD');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/Extent_permanent_structure/partition_hollow').setValue('s1iXIaX3cEs');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/Extent_permanent_structure/outerwalls_hollow').setValue('YQhGXE40FYo');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/member_use_wheelchair').setValue('wKJmiYiV80F');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/Extent_permanent_structure/partition_nbr_rowblock').setValue('mlvCkh6o1VE');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/Extent_permanent_structure/outerwalls_nbr_rowblock').setValue('DR0g8f9K7BL');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/ngo_dist_fe_other').setValue('yPVtT3xaiNi');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_walls_external/tear_irreparable').setValue('BP5V6t3t8Ag');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_walls_external/broken_walls_2').setValue('xZDjgOAhfwN');
-    this.indexesForm.get('assessment_unhcr/technical_assessment/condition_roof/broken_roof_1').setValue('jD8HtaZBr2E');
-    this.indexesForm.get('assessment_unhcr/dateofmonitoring').setValue('eventDate');
+    this.indexesForm.controls['assessment_unhcr/wood_score'].setValue('QEfZXmE4Htl');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/expiry_date'].setValue('Y3tRbvoyqUn');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/condition_roof/evidence_leakage'].setValue('pS8xdgt8B1m');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/vulnerability_criteria/child_hh'].setValue('yUnOKMuC2Sa');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/vulnerability_criteria/female_hh'].setValue('KwmIXl6Lub3');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/vulnerability_criteria/elderly_hh'].setValue('w72z9m5LQK8');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/vulnerability_criteria/disabled_hh'].setValue('kkH9DhcZ40z');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/vulnerability_criteria/over_three_children'].setValue('eVjKkVVSELP');
+    this.indexesForm.controls['assessment_unhcr/plastic_score'].setValue('Kq30CJ5FSAn');
+    this.indexesForm.controls['assessment_unhcr/score_unhcr'].setValue('tcURaivGj06');
+    this.indexesForm.controls['assessment_unhcr/case_HH_result'].setValue('dzd3NDmx8oo');
+    this.indexesForm.controls['assessment_unhcr/layers_evidence_calc1'].setValue('nibIAJJ8RKw');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/have_FE'].setValue('LsT6Vd3Z3ig');
+    this.indexesForm.controls['assessment_unhcr/automatic_eligibility/SSB_ITS'].setValue('hJboAaChf9C');
+    this.indexesForm.controls['assessment_unhcr/automatic_eligibility/Non_family'].setValue('sA5yhCRFbW8');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/share_fe'].setValue('VRjgViCp9lu');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/know_use_FE'].setValue('ya4z5Y8DLtZ');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/door_lockable'].setValue('thDxeirmuRD');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/hh_specific_needs'].setValue('axWzKVvOaV5');
+    this.indexesForm.controls['assessment_unhcr/automatic_eligibility/exclusion_criteria'].setValue('RUJyztpzZGi');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/kit_general/kit_unhcr'].setValue('TIP9vTG0wBO');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/condition_roof/layers_roof'].setValue('QWr5jS7aAFe');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/hh_checked_protection_cases'].setValue('avVjGv0xyzt');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/condition_roof/broken_roof_0'].setValue('uqJSwTAYGM3');
+    // this.indexesForm.controls['assessment_unhcr/technical_assessment/color_pressure_gauge').setValue('bgdcVZCPuF5');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/condition_roof/distance_roof'].setValue('cFk69enMOoj');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/overcrowding_assessment/area'].setValue('lvuf6utBlq9');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/condition_structure/shelter_bracing'].setValue('mwFGbe9wjWG');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/kit_general/partition_recomendation'].setValue('JxyQmMB4Cd8');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/overcrowding_assessment/individuals'].setValue('CvVF9QZwuoF');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/Extent_permanent_structure/roof_zinc'].setValue('iCvSap1FfRU');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/condition_structure/broken_structure'].setValue('F8Ln4n782xH');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/condition_walls_external/layers_walls'].setValue('w1IJeAo03vI');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/condition_structure/material_structure'].setValue('iJqjwHPwSSn');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/condition_walls_external/broken_walls_0'].setValue('mHjwTyz7Jkf');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/condition_walls_external/distance_walls'].setValue('pDwjESn3WtD');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/Extent_permanent_structure/partition_hollow'].setValue('s1iXIaX3cEs');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/Extent_permanent_structure/outerwalls_hollow'].setValue('YQhGXE40FYo');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/member_use_wheelchair'].setValue('wKJmiYiV80F');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/Extent_permanent_structure/partition_nbr_rowblock'].setValue('mlvCkh6o1VE');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/Extent_permanent_structure/outerwalls_nbr_rowblock'].setValue('DR0g8f9K7BL');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/ngo_dist_fe_other'].setValue('yPVtT3xaiNi');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/condition_walls_external/tear_irreparable'].setValue('BP5V6t3t8Ag');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/condition_walls_external/broken_walls_2'].setValue('xZDjgOAhfwN');
+    this.indexesForm.controls['assessment_unhcr/technical_assessment/condition_roof/broken_roof_1'].setValue('jD8HtaZBr2E');
+    this.indexesForm.controls['assessment_unhcr/dateofmonitoring'].setValue('eventDate');
+
   }
 
   async createIndexesForm(extractedIndexesArray) {
@@ -817,6 +978,8 @@ export class HomeComponent extends BaseClass implements OnInit {
       g[k] = '';
       return g;
     }, {});
+
+    console.log(controls);
     this.indexesForm = this.fb.group(controls, [Validators.required]);
     this.indexesForm.addControl('dataElementSearch', new FormControl(''));
     this.indexesForm.controls.dataElementSearch.valueChanges
@@ -824,6 +987,7 @@ export class HomeComponent extends BaseClass implements OnInit {
       .subscribe(() => {
         this.filterDataElements();
       });
+    // }
   }
 
   mapData() {
@@ -974,7 +1138,7 @@ export class HomeComponent extends BaseClass implements OnInit {
   }
 
   async uploadRow(dataArray, eventId, programId, prgStage, ou,
-                  returnedInstanceID, stageStatus, due, evDate, compDate) {
+    returnedInstanceID, stageStatus, due, evDate, compDate) {
     // this.loader.showLoader();
     // this.isLoading = true;
     const completedDate = compDate;
@@ -1128,7 +1292,8 @@ export class HomeComponent extends BaseClass implements OnInit {
     // const searchValue = 'H0000012223';
     // 1. Search value API call
     this.odkLength = data.length;
-    for (const elem of data) {
+    for (const [idx, elem] of data.entries()) {
+      console.log(idx, elem, this.ou);
       // console.log(elem)
       const searchValue = elem['OcuwLhE6Gu0'];
       // keyFieldAttribute = searchValue.startsWith('H') === true ? keyFieldAttribute : 'TN0ZUAIq3jr';
@@ -1138,7 +1303,6 @@ export class HomeComponent extends BaseClass implements OnInit {
       delete elem[keyFieldAttribute];
       const eventDate = elem['eventDate'];
       delete elem['eventDate'];
-
       const eventsArray = [];
       const eventId = '';
       // tslint:disable-next-line: max-line-length
@@ -1148,23 +1312,28 @@ export class HomeComponent extends BaseClass implements OnInit {
       await this.checkValueInDhis2(elem, searchValue,
         searchValue.startsWith('H') === true ? appendToUrlEqualAutoId : appendToUrlEqualOnaId,
         keyField, ou, programId).then(async (res) => {
-        if (res['rows'].length > 0) {
-          const returnedInstanceID = res['rows'][0][0];
-          console.log('returnedInstanceID: ', returnedInstanceID);
-          // Check if enrolled
-          const dataValues = [];
-          for (const key in elem) {
-            if (elem.hasOwnProperty(key) && key !== '') {
-              dataValues.push({ value: elem[key], dataElement: key });
+          console.log(`row ${res['rows']}`);
+          if (res['rows'].length > 0) {
+            const returnedInstanceID = res['rows'][0][0];
+            console.log('returnedInstanceID: ', returnedInstanceID);
+            // Check if enrolled
+            const dataValues = [];
+            for (const key in elem) {
+              if (elem.hasOwnProperty(key) && key !== '') {
+                if (elem[key] === 'n/a' || elem[key] === '#n/a' || elem[key] === '#N/A' || elem[key] === 'N/A') {
+                  elem[key] = '';
+                }
+                dataValues.push({ value: elem[key], dataElement: key });
+              }
             }
-          }
-          await this.checkInstanceEnrollment(elem, returnedInstanceID, programId, '*&paging=FALSE').then(async (enroll) => {
-            await this.addEventAndReturnId(returnedInstanceID, programId,
-              enroll['enrollments'][0].enrollment, ou, stageId, dataValues).then(async (eventId) => {
-                console.log('Generated Event ID: ', eventId);
-                eventId = eventId;
-                // console.log('enroll ids: ', enroll['enrollments'], enroll['enrollments'][0].program, programId);
-                // if (enroll['enrollments'][0].program === programId && enroll['enrollments'][0].orgUnit === ou) {
+            console.log(`OrgUnit ID ${this.ou[idx]}`);
+            await this.checkInstanceEnrollment(elem, returnedInstanceID, programId, '*&paging=FALSE').then(async (enroll) => {
+              await this.addEventAndReturnId(returnedInstanceID, programId,
+                enroll['enrollments'][0].enrollment, this.ou[idx], stageId, dataValues).then(async (eventId) => {
+                  console.log('Generated Event ID: ', eventId);
+                  eventId = eventId;
+                  // console.log('enroll ids: ', enroll['enrollments'], enroll['enrollments'][0].program, programId);
+                  // if (enroll['enrollments'][0].program === programId && enroll['enrollments'][0].orgUnit === ou) {
 
                   // this.uploadRow(elem, eventId, programId, this.mainGroup.controls.dhisStage.value,
                   //   ou, returnedInstanceID, 'COMPLETED', eventDate, eventDate, enrollDate).then((uploadArray) => {
@@ -1175,7 +1344,7 @@ export class HomeComponent extends BaseClass implements OnInit {
                   //   }).catch((error) => {
                   //     // this.unableToAddIntoTheStageArray.push(elem);
                   //   });
-                // } else {
+                  // } else {
                   // Enroll it into program
                   // const data = {
                   //   trackedEntityInstance: returnedInstanceID, program: programId,
@@ -1198,35 +1367,37 @@ export class HomeComponent extends BaseClass implements OnInit {
                   //   this.elementNotEnrolled['Reason'] = 'Instance ID could not be enrolled';
                   //   this.elementNotEnrolled.push(elem);
                   // });
-                // }
-              }).catch((error) => {
-                this.cannotGenerateEventId.push(elem);
-              });
-            // }
-          }).catch((rejectEvent) => {
-            // \Add to events id log
-            this.elementWithNoEventId['Reason'] = 'No event ID available';
-            this.elementWithNoEventId.push(elem);
-          });
-          // }).catch((error) => {
-          //   // Add to array to be downloaded later into an excel file
-          //   console.log('Enrollment error: ', error);
+                  // }
+                }).catch((error) => {
+                  this.cannotGenerateEventId.push({ id: searchValue });
+                });
+              // }
+            }).catch((rejectEvent) => {
+              // \Add to events id log
+              // this.elementWithNoEventId['ID'] = elem['OcuwLhE6Gu0'];
+              this.elementWithNoEventId.push({ id: searchValue });
+            });
+            // }).catch((error) => {
+            //   // Add to array to be downloaded later into an excel file
+            //   console.log('Enrollment error: ', error);
 
-          // });
-        } else {
-          // Add to array and to be downloaded into excel file later
-          this.elementDoesNotExistOnDHIS['Reason'] = 'Could not find the key value on DHIS2';
-          this.elementDoesNotExistOnDHIS.push(elem);
-          console.log('No data available for this ID');
+            // });
+          } else {
+            // Add to array and to be downloaded into excel file later
+            // this.elementDoesNotExistOnDHIS['ID'] = elem['OcuwLhE6Gu0'];
+            // this.elementDoesNotExistOnDHIS['Reason'] = 'Could not find the key value on DHIS2';
+            this.elementDoesNotExistOnDHIS.push({ id: searchValue });
+            console.log('No data available for this ID');
 
+          }
+
+        }).catch((error) => {
+          this.elementDoesNotExistOnDHIS.push({ id: searchValue });
+          // Add to the log array to be downloaded into excel file later
+          console.log(this.elementDoesNotExistOnDHIS);
+          // this.elementDoesNotExistOnDHIS.push(elem);
         }
-
-      }).catch((error) => {
-        // Add to the log array to be downloaded into excel file later
-        console.log(this.elementDoesNotExistOnDHIS);
-        // this.elementDoesNotExistOnDHIS.push(elem);
-      }
-      );
+        );
       // }
       this.odkLength--;
     }
@@ -1235,103 +1406,4 @@ export class HomeComponent extends BaseClass implements OnInit {
     this.exportRelationShips();
   }
 
-  // async onFileChange(ev) {
-  //   let workBook = null;
-  //   let jsonData = null;
-  //   const reader = new FileReader();
-  //   const file = ev.target.files[0];
-  //   reader.onload = (event) => {
-  //     const data = reader.result;
-  //     workBook = XLSX.read(data, { type: 'binary', cellDates: true, dateNF: 'yyyy-MM-dd' });
-  //     jsonData = workBook.SheetNames.reduce((initial, name) => {
-  //       const sheet = workBook.Sheets[name];
-  //       initial[name] = XLSX.utils.sheet_to_json(sheet);
-  //       return initial;
-  //     }, {});
-  //     const dataString = JSON.stringify(jsonData['Sheet1']);
-  //     this.getOdkDataArray = JSON.parse(dataString);
-  //     // this.excelFromArray = JSON.parse(dataString);
-  //   };
-  //   reader.readAsBinaryString(file);
-  //   // this.showMsg = '';
-  //   this.initialOdkDataIndexes = [];
-  //   this.onaFieldsToBeRemoved = [];
-  //   this.getOdkDataArray = [];
-  //   this.getInitialOdkDataArray = [];
-  //   this.odkDataIndexes = [];
-  //   this.odkDataMsg = 'Getting the array of data and cleanning it from null values and checking sub-groups';
-  //   this.showEmptyOdkMsg = false;
-  //   this.showFields = false;
-  //   // this.loader.showLoader();
-  //   // Object.keys(resp).forEach((key) => {
-  //   //   this.getOdkDataArray.push(resp[key]);
-  //   // });
-  //   this.getInitialOdkDataArray = this.getOdkDataArray;
-  //   // Get the properties of the data array
-  //   let props = [];
-  //   props = Array.from(new Set(this.getOdkDataArray.flatMap(e => Object.keys(e), [])));
-  //   // Clean null values
-  //   for (const elem of this.getOdkDataArray) {
-  //     for (const prop of props) {
-
-  //       // We can use the same if condition for both comaprisons but it will stay like this for now
-  //       if (elem[prop] === null || elem[prop] === undefined) {
-  //         elem[prop] = '';
-  //       }
-
-  //       // Check if there empty arrays or arrays having null values like [null, null]
-  //       if (Array.isArray(elem[prop]) || typeof (elem[prop]) === 'object') {
-  //         if (elem[prop].indexOf(null) !== -1 || elem[prop].length === 0) {
-  //           elem[prop] = '';
-  //         }
-  //       }
-
-  //       // // Check if there is undefined/null values and replace it by empty values
-  //       // if (elem[prop] === undefined || elem[prop] === null) {
-  //       //   elem[prop] = '';
-  //       // }
-  //     }
-  //   }
-
-  //   // Getting the first array of begin-repeat nested array within the main data we've got from ONA
-  //   this.typeArr = [];
-  //   const newArr = this.getOdkDataArray.map((obj, idx) => {
-  //     const newObj = {};
-  //     // tslint:disable-next-line: forin
-  //     // for (const key in obj[0]) {
-  //     //   this.typeArr.push({type: typeof obj[key], field: key});
-  //     // }
-  //     for (const key in obj) {
-  //       const type = typeof obj[key];
-
-  //       if (type === 'object') {
-  //         // tslint:disable-next-line: forin
-  //         for (const subkey in obj[key][0]) {
-  //           newObj[key + '_' + subkey] = obj[key][0][subkey];
-  //         }
-  //       } else {
-  //         newObj[key] = obj[key];
-  //       }
-  //     }
-  //     // console.log(this.typeArr);
-  //     return newObj;
-  //   });
-
-  //   this.getOdkDataArray = newArr;
-  //   console.log(this.getOdkDataArray, this.getOdkDataArray.length, this.odkDataIndexes.length);
-  //   this.getOdkDataArray.length === 0 ? this.showEmptyOdkMsg = true : this.showEmptyOdkMsg = false;
-  //   // Delete metadata fields
-  //   if (this.deleteMetadataFields) {
-  //     await this.removeMetadataFields(this.getOdkDataArray);
-  //   }
-  //   // Extract arrays indexes/properties
-  //   this.odkDataIndexes = Object.values(this.extractArrayIndexes(this.getOdkDataArray));
-  //   this.initialOdkDataIndexes = this.odkDataIndexes;
-  //   console.log(this.getOdkDataArray, this.getOdkDataArray.length, this.odkDataIndexes.length);
-  //   this.filteredFields.next(this.odkDataIndexes.slice());
-  //   // this.OdkNestedArrayToString(this.odkDataIndexes, this.getOdkDataArray).then((res) => {
-  //   // });
-  //   console.log(this.getOdkDataArray);
-  //   this.createOnaDataFields();
-  // }
 }
