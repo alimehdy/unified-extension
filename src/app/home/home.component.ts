@@ -465,7 +465,9 @@ export class HomeComponent extends BaseClass implements OnInit {
         workBook = XLSX.read(data, { type: 'binary', cellDates: true, dateNF: 'yyyy-MM-dd' });
         jsonData = workBook.SheetNames.reduce((initial, name) => {
           const sheet = workBook.Sheets[name];
-          initial[name] = XLSX.utils.sheet_to_json(sheet);
+          initial[name] = XLSX.utils.sheet_to_json(sheet, {
+            defval: ''
+          });
           return initial;
         }, {});
         const dataString = JSON.stringify(jsonData['Sheet1']);
@@ -487,7 +489,7 @@ export class HomeComponent extends BaseClass implements OnInit {
         this.loader.hideLoader();
         this.isLoading = false;
         this.odkDataMsg = '';
-        console.log(this.getOdkDataArray)
+        console.log(this.getOdkDataArray);
         // Object.keys(dataString).forEach((key) => {
         //   this.getOdkDataArray.push(dataString);
         //   console.log(this.getOdkDataArray);
@@ -917,7 +919,7 @@ export class HomeComponent extends BaseClass implements OnInit {
   }
 
   async automaticMapping() {
-    console.log(this.odkDataIndexes)
+    console.log(this.odkDataIndexes);
     console.log(this.dataElementsDetails);
     // for (const indexField of this.odkDataIndexes) {
     //   console.log('Field: ', indexField);
@@ -1138,7 +1140,7 @@ export class HomeComponent extends BaseClass implements OnInit {
   }
 
   async uploadRow(dataArray, eventId, programId, prgStage, ou,
-    returnedInstanceID, stageStatus, due, evDate, compDate) {
+                  returnedInstanceID, stageStatus, due, evDate, compDate) {
     // this.loader.showLoader();
     // this.isLoading = true;
     const completedDate = compDate;
@@ -1285,6 +1287,7 @@ export class HomeComponent extends BaseClass implements OnInit {
     console.log('Old Data: ', data);
     if (this.uploadDataForm.controls.startingIndex.value !== '' && this.uploadDataForm.controls.lastIndex.value !== '') {
       const newData = data.slice(this.uploadDataForm.controls.startingIndex.value, parseInt(this.uploadDataForm.controls.lastIndex.value, 10) + 1);
+      this.ou = this.ou.slice(this.uploadDataForm.controls.startingIndex.value, parseInt(this.uploadDataForm.controls.lastIndex.value, 10) + 1);
       data = newData;
       console.log('Ranged Data: ', data);
     }
@@ -1293,9 +1296,9 @@ export class HomeComponent extends BaseClass implements OnInit {
     // 1. Search value API call
     this.odkLength = data.length;
     for (const [idx, elem] of data.entries()) {
-      console.log(idx, elem, this.ou);
+      console.log(idx, elem, this.ou[idx]);
       // console.log(elem)
-      const searchValue = elem['OcuwLhE6Gu0'];
+      const searchValue = elem['OcuwLhE6Gu0'].trim();
       // keyFieldAttribute = searchValue.startsWith('H') === true ? keyFieldAttribute : 'TN0ZUAIq3jr';
       // console.log('ID: ', searchValue, keyFieldAttribute);
       // if (elem['OcuwLhE6Gu0'] === '51196329') {
