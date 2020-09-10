@@ -478,11 +478,11 @@ export class HomeComponent extends BaseClass implements OnInit {
     });
     uploadPromise.then((dataString) => {
       this.getOdkDataArray = dataString;
-      Object.values(this.getOdkDataArray).forEach((item) => {
-        this.ou.push(item['ou']);
-      });
+      // Object.values(this.getOdkDataArray).forEach((item) => {
+      //   this.ou.push(item['ou']);
+      // });
       // this.ou = this.getOdkDataArray['ou'];
-      console.log(this.ou);
+      // console.log(this.ou);
       const odkDataPromise = new Promise(async (resolve, reject) => {
         // this.api.getData(dataUrl, 'ona').subscribe(
         //   async (resp) => {
@@ -1287,7 +1287,7 @@ export class HomeComponent extends BaseClass implements OnInit {
     console.log('Old Data: ', data);
     if (this.uploadDataForm.controls.startingIndex.value !== '' && this.uploadDataForm.controls.lastIndex.value !== '') {
       const newData = data.slice(this.uploadDataForm.controls.startingIndex.value, parseInt(this.uploadDataForm.controls.lastIndex.value, 10) + 1);
-      this.ou = this.ou.slice(this.uploadDataForm.controls.startingIndex.value, parseInt(this.uploadDataForm.controls.lastIndex.value, 10) + 1);
+      // this.ou = this.ou.slice(this.uploadDataForm.controls.startingIndex.value, parseInt(this.uploadDataForm.controls.lastIndex.value, 10) + 1);
       data = newData;
       console.log('Ranged Data: ', data);
     }
@@ -1296,7 +1296,7 @@ export class HomeComponent extends BaseClass implements OnInit {
     // 1. Search value API call
     this.odkLength = data.length;
     for (const [idx, elem] of data.entries()) {
-      console.log(idx, elem, this.ou[idx]);
+      // console.log(idx, elem, this.ou[idx]);
       // console.log(elem)
       const searchValue = elem['OcuwLhE6Gu0'].trim();
       // keyFieldAttribute = searchValue.startsWith('H') === true ? keyFieldAttribute : 'TN0ZUAIq3jr';
@@ -1318,6 +1318,8 @@ export class HomeComponent extends BaseClass implements OnInit {
           console.log(`row ${res['rows']}`);
           if (res['rows'].length > 0) {
             const returnedInstanceID = res['rows'][0][0];
+            const returnedOrgUnitID = res['rows'][0][3];
+            console.log('OrgUnit: ', returnedOrgUnitID);
             console.log('returnedInstanceID: ', returnedInstanceID);
             // Check if enrolled
             const dataValues = [];
@@ -1329,55 +1331,17 @@ export class HomeComponent extends BaseClass implements OnInit {
                 dataValues.push({ value: elem[key], dataElement: key });
               }
             }
-            console.log(`OrgUnit ID ${this.ou[idx]}`);
+            // console.log(`OrgUnit ID ${this.ou[idx]}`);
             await this.checkInstanceEnrollment(elem, returnedInstanceID, programId, '*&paging=FALSE').then(async (enroll) => {
               await this.addEventAndReturnId(returnedInstanceID, programId,
-                enroll['enrollments'][0].enrollment, this.ou[idx], stageId, dataValues).then(async (eventId) => {
+                enroll['enrollments'][0].enrollment, returnedOrgUnitID, stageId, dataValues).then(async (eventId) => {
                   console.log('Generated Event ID: ', eventId);
                   eventId = eventId;
-                  // console.log('enroll ids: ', enroll['enrollments'], enroll['enrollments'][0].program, programId);
-                  // if (enroll['enrollments'][0].program === programId && enroll['enrollments'][0].orgUnit === ou) {
-
-                  // this.uploadRow(elem, eventId, programId, this.mainGroup.controls.dhisStage.value,
-                  //   ou, returnedInstanceID, 'COMPLETED', eventDate, eventDate, enrollDate).then((uploadArray) => {
-                  //     // Add to successFullyAddedData
-                  //     // console.log(elem);
-                  //     // this.successFullyAddedData.push(elem);
-                  //     console.log('Stage Data Added');
-                  //   }).catch((error) => {
-                  //     // this.unableToAddIntoTheStageArray.push(elem);
-                  //   });
-                  // } else {
-                  // Enroll it into program
-                  // const data = {
-                  //   trackedEntityInstance: returnedInstanceID, program: programId,
-                  //   status: 'ACTIVE', orgUnit: ou, enrollmentDate: enrollDate, incidentDate: enrollDate
-                  // };
-                  // await this.enroll(data).then((res) => {
-                  //   this.uploadRow(elem, eventId, programId, this.mainGroup.controls.dhisStage.value,
-                  //     ou, returnedInstanceID, 'COMPLETED', eventDate, eventDate, enrollDate).then((uploadArray) => {
-                  //       // Add to successFullyAddedData
-                  //       // console.log(elem);
-                  //       // this.successFullyAddedData.push(elem);
-                  //       console.log('Stage Data Added');
-                  //     }).catch((error) => {
-                  //       // elem['Reason'] = error.response.conflicts[0].object + ' - ' + error.response.conflicts[0].value;
-                  //       // this.unableToAddIntoTheStageArray.push(elem);
-                  //       console.log(error);
-                  //     });
-                  // }).catch((rej) => {
-                  //   // Add to log array as not able to be enrolled
-                  //   this.elementNotEnrolled['Reason'] = 'Instance ID could not be enrolled';
-                  //   this.elementNotEnrolled.push(elem);
-                  // });
-                  // }
                 }).catch((error) => {
                   this.cannotGenerateEventId.push({ id: searchValue });
                 });
               // }
             }).catch((rejectEvent) => {
-              // \Add to events id log
-              // this.elementWithNoEventId['ID'] = elem['OcuwLhE6Gu0'];
               this.elementWithNoEventId.push({ id: searchValue });
             });
             // }).catch((error) => {
