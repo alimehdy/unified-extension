@@ -22,7 +22,6 @@ export class HomeComponent extends BaseClass implements OnInit {
   public filteredOrganization: ReplaySubject<any[]> = new ReplaySubject<any[]>(1);
   public filteredFields: ReplaySubject<any[]> = new ReplaySubject<any[]>(1);
   public filteredDataElements: ReplaySubject<any[]> = new ReplaySubject<any[]>(1);
-
   // Various variables
   removeUnnecessaryFieldsMsg = '';
   mapDataError = '';
