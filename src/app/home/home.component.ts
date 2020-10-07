@@ -1075,10 +1075,10 @@ export class HomeComponent extends BaseClass implements OnInit {
             // }
           },
           (error) => {
-            this.elementNotEnrolled['Reason'] = error;
-            this.elementNotEnrolled.push(dataArray);
+            // this.elementNotEnrolled['Reason'] = error;
+            // this.elementNotEnrolled.push(dataArray);
             reject(error);
-            console.log(error);
+            console.log('Not enrolled: ', error);
           }
         );
     });
@@ -1220,9 +1220,10 @@ export class HomeComponent extends BaseClass implements OnInit {
     });
   }
 
-  addEventAndReturnId(instanceId, programId, enrollment, orgUnit, programStageId, dataValues) {
-    const myDate = new Date();
-    const eventDate = this.datePipe.transform(myDate, 'yyyy-MM-dd');
+  addEventAndReturnId(instanceId, programId, eventData, enrollment, orgUnit, programStageId, dataValues) {
+    // const myDate = new Date();
+    // const eventDate = this.datePipe.transform(myDate, 'yyyy-MM-dd');
+    const eventDate = this.datePipe.transform(eventData, 'yyyy-MM-dd');
     return new Promise((resolve, reject) => {
       // const events = {};
       const events = {
@@ -1266,18 +1267,13 @@ export class HomeComponent extends BaseClass implements OnInit {
     const enrollDate = this.datePipe.transform(myDate, 'yyyy-MM-dd');
     const keyField = this.uploadDataForm.controls.keyField.value;
     const keyFieldAttribute = this.uploadDataForm.controls.keyFieldAttribute.value;
-    // const keyField = 'OcuwLhE6Gu0';
     let data = this.getOdkDataArray;
     const ou = this.mainGroup.controls.organization.value;
     const programId = this.mainGroup.controls.dhisPrograms.value;
     const stageId = this.mainGroup.controls.dhisStage.value;
-    // Adding key field to the data that will be uploaded
     // tslint:disable-next-line: prefer-for-of
     for (let i = 0; i < data.length; i++) {
-      // console.log('KeyFieldAttr: ', keyFieldAttribute, this.getInitialOdkDataArray[i][keyField]);
-      // console.log(typeof data[i]);
       data[i][keyFieldAttribute] = this.getInitialOdkDataArray[i][keyField];
-      // console.log(data[i], data[i][keyFieldAttribute]);
     }
 
     // data.map((item, index) => {
@@ -1286,7 +1282,6 @@ export class HomeComponent extends BaseClass implements OnInit {
     console.log('Old Data: ', data);
     if (this.uploadDataForm.controls.startingIndex.value !== '' && this.uploadDataForm.controls.lastIndex.value !== '') {
       const newData = data.slice(this.uploadDataForm.controls.startingIndex.value, parseInt(this.uploadDataForm.controls.lastIndex.value, 10) + 1);
-      // this.ou = this.ou.slice(this.uploadDataForm.controls.startingIndex.value, parseInt(this.uploadDataForm.controls.lastIndex.value, 10) + 1);
       data = newData;
       console.log('Ranged Data: ', data);
     }
@@ -1297,7 +1292,8 @@ export class HomeComponent extends BaseClass implements OnInit {
     for (const [idx, elem] of data.entries()) {
       // console.log(idx, elem, this.ou[idx]);
       // console.log(elem)
-      const searchValue = elem['OcuwLhE6Gu0'].trim();
+      // const searchValue = elem['OcuwLhE6Gu0'].trim();
+      const searchValue = elem[keyFieldAttribute].trim();
       // keyFieldAttribute = searchValue.startsWith('H') === true ? keyFieldAttribute : 'TN0ZUAIq3jr';
       // console.log('ID: ', searchValue, keyFieldAttribute);
       // if (elem['OcuwLhE6Gu0'] === '51196329') {
@@ -1305,8 +1301,8 @@ export class HomeComponent extends BaseClass implements OnInit {
       delete elem[keyFieldAttribute];
       const eventDate = elem['eventDate'];
       delete elem['eventDate'];
-      const eventsArray = [];
-      const eventId = '';
+      // const eventsArray = [];
+      // const eventId = '';
       // tslint:disable-next-line: max-line-length
       console.log('Searched Value: ', searchValue);
       const appendToUrlEqualAutoId = '&ou=' + ou + '&ouMode=ACCESSIBLE&program=' + programId + '&filter=' + keyFieldAttribute + ':EQ:' + searchValue;
@@ -1332,7 +1328,7 @@ export class HomeComponent extends BaseClass implements OnInit {
             }
             // console.log(`OrgUnit ID ${this.ou[idx]}`);
             await this.checkInstanceEnrollment(elem, returnedInstanceID, programId, '*&paging=FALSE').then(async (enroll) => {
-              await this.addEventAndReturnId(returnedInstanceID, programId,
+              await this.addEventAndReturnId(returnedInstanceID, programId, eventDate,
                 enroll['enrollments'][0].enrollment, returnedOrgUnitID, stageId, dataValues).then(async (eventId) => {
                   console.log('Generated Event ID: ', eventId);
                   eventId = eventId;
@@ -1341,7 +1337,7 @@ export class HomeComponent extends BaseClass implements OnInit {
                 });
               // }
             }).catch((rejectEvent) => {
-              this.elementWithNoEventId.push({ id: searchValue });
+              this.elementNotEnrolled.push({ id: searchValue });
             });
             // }).catch((error) => {
             //   // Add to array to be downloaded later into an excel file
